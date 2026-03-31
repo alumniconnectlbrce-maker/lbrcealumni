@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LBRCE Alumni Connect Portal</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af', // Blue 800
+                        secondary: '#3b82f6', // Blue 500
+                        accent: '#f59e0b', // Amber 500
+                        dark: '#0f172a', // Slate 900
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hero-pattern {
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Custom Modal Styles */
+        .modal-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-out;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.95) translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800 bg-gray-50 antialiased selection:bg-secondary selection:text-white">
+
+    <!-- Launching Soon Modal -->
+    <div id="launch-modal" class="modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div class="modal-content bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-gray-200 relative text-center">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <i data-lucide="rocket" class="w-8 h-8 sm:w-10 sm:h-10 text-secondary"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-dark mb-2">Launching Soon!</h3>
+            <p class="text-sm sm:text-base text-gray-600 mb-6 leading-relaxed">We're putting the final touches on the portal. The first version is officially scheduled to launch on <strong class="text-primary block mt-1 text-base sm:text-lg">13th April 2026</strong></p>
+            <button onclick="closeModal()" class="w-full py-3 sm:py-3.5 bg-primary hover:bg-blue-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5">Got it, thanks!</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 sm:h-20 items-center">
+                <div class="flex items-center gap-2 sm:gap-3 cursor-pointer">
+                    <div class="bg-primary text-white p-1.5 sm:p-2 rounded-lg">
+                        <i data-lucide="graduation-cap" class="w-6 h-6 sm:w-8 sm:h-8"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg sm:text-xl text-dark tracking-tight">LBRCE</span>
+                        <span class="block text-[10px] sm:text-xs text-secondary font-semibold uppercase tracking-wider">Alumni Connect</span>
+                    </div>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#about" class="text-gray-600 hover:text-primary font-medium transition-colors">About</a>
+                    <a href="#features" class="text-gray-600 hover:text-primary font-medium transition-colors">Features</a>
+                    <a href="#roles" class="text-gray-600 hover:text-primary font-medium transition-colors">Roles</a>
+                    <a href="#benefits" class="text-gray-600 hover:text-primary font-medium transition-colors">Benefits</a>
+                    <button onclick="showModal()" class="bg-primary hover:bg-blue-900 text-white px-6 py-2.5 rounded-full font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        Portal Login
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-primary focus:outline-none p-2">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 pt-2 pb-4 space-y-1 shadow-lg absolute w-full">
+            <a href="#about" class="mobile-link block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-50">About</a>
+            <a href="#features" class="mobile-link block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-50">Features</a>
+            <a href="#roles" class="mobile-link block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-50">Roles</a>
+            <a href="#benefits" class="mobile-link block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">Benefits</a>
+            <button onclick="showModal(); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-center block px-3 py-3 rounded-md text-base font-medium text-white bg-primary mt-4 shadow-md">Portal Login</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden text-white bg-dark">
+        
+        <!-- Background Image & Overlay -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://res.cloudinary.com/dzuxwvamy/image/upload/v1774935576/admin-block_hamw4c.jpg" alt="LBRCE Admin Block Background" class="w-full h-full object-cover opacity-40 md:opacity-50">
+            <div class="absolute inset-0 bg-gradient-to-b from-[#0f172a]/95 via-[#0f172a]/85 to-[#0f172a]"></div>
+        </div>
+
+        <!-- Decorative blobs -->
+        <div class="absolute top-0 left-0 w-64 h-64 md:w-96 md:h-96 bg-secondary/20 rounded-full mix-blend-screen filter blur-[80px] md:blur-[100px] opacity-60 animate-blob z-0"></div>
+        <div class="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-primary/20 rounded-full mix-blend-screen filter blur-[80px] md:blur-[100px] opacity-60 animate-blob animation-delay-2000 z-0"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center mt-8 sm:mt-0">
+            
+            <!-- Launch Banner & Timer -->
+            <div class="flex flex-col items-center justify-center mb-8 sm:mb-10 reveal">
+                <div class="inline-flex items-center justify-center flex-wrap gap-2 py-2 px-4 sm:px-6 rounded-full bg-blue-900/40 border border-blue-400/50 text-xs sm:text-sm font-bold tracking-wider text-blue-100 backdrop-blur-md shadow-[0_0_20px_rgba(59,130,246,0.4)] mb-6 sm:mb-8 text-center mx-4">
+                    <span class="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-blue-500"></span>
+                    </span>
+                    <span class="text-white drop-shadow-md uppercase text-sm sm:text-base">First Version</span> 
+                    <span class="hidden sm:inline font-medium text-blue-200">|</span>
+                    <span class="font-medium text-blue-200">Launching 13th April 2026</span>
+                </div>
+
+                <!-- Countdown Timer -->
+                <div class="flex gap-2 sm:gap-4 md:gap-6 text-center justify-center" id="launch-timer">
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
+                            <span id="days" class="text-xl sm:text-2xl md:text-4xl font-bold text-white tracking-tight">00</span>
+                        </div>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs text-blue-200 mt-2 uppercase tracking-widest font-semibold">Days</span>
+                    </div>
+                    <span class="text-2xl sm:text-3xl md:text-4xl font-bold text-white/30 mt-2 sm:mt-3 md:mt-4">:</span>
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
+                            <span id="hours" class="text-xl sm:text-2xl md:text-4xl font-bold text-white tracking-tight">00</span>
+                        </div>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs text-blue-200 mt-2 uppercase tracking-widest font-semibold">Hours</span>
+                    </div>
+                    <span class="text-2xl sm:text-3xl md:text-4xl font-bold text-white/30 mt-2 sm:mt-3 md:mt-4">:</span>
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
+                            <span id="minutes" class="text-xl sm:text-2xl md:text-4xl font-bold text-white tracking-tight">00</span>
+                        </div>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs text-blue-200 mt-2 uppercase tracking-widest font-semibold">Mins</span>
+                    </div>
+                    <span class="text-2xl sm:text-3xl md:text-4xl font-bold text-white/30 mt-2 sm:mt-3 md:mt-4">:</span>
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-primary/20 border border-primary/40 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(30,64,175,0.5)]">
+                            <span id="seconds" class="text-xl sm:text-2xl md:text-4xl font-bold text-accent tracking-tight">00</span>
+                        </div>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs text-accent mt-2 uppercase tracking-widest font-bold">Secs</span>
+                    </div>
+                </div>
+            </div>
+
+            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 sm:mb-8 reveal px-2 sm:px-0" style="transition-delay: 100ms;">
+                Empowering the <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-200 to-accent drop-shadow-sm block sm:inline mt-2 sm:mt-0">LBRCE</span> Community
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-300 reveal leading-relaxed font-light px-4 sm:px-0" style="transition-delay: 200ms;">
+                A centralized digital platform connecting students, alumni, and administrators to foster structured communication, career opportunities, and lifelong institutional engagement.
+            </p>
+            <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-center gap-4 reveal px-4 sm:px-0" style="transition-delay: 300ms;">
+                <button onclick="showModal()" class="w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 bg-gradient-to-r from-secondary to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white rounded-full font-bold text-base sm:text-lg transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transform hover:-translate-y-1 flex items-center justify-center gap-2 border border-blue-400/30">
+                    Student / Alumni Login
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+                <a href="#about" class="w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 bg-white/5 backdrop-blur-sm border border-gray-400/50 hover:border-white/80 hover:bg-white/10 text-white rounded-full font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2">
+                    Learn More
+                    <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                </a>
+            </div>
+            
+            <!-- Quick Stats/Info from DPR -->
+            <div class="mt-12 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-4 sm:gap-6 border-t border-gray-700/50 pt-8 sm:pt-10 reveal" style="transition-delay: 400ms;">
+                <div class="text-center">
+                    <p class="text-3xl md:text-4xl font-bold text-white mb-1">100%</p>
+                    <p class="text-[10px] sm:text-xs md:text-sm text-gray-400 font-medium uppercase tracking-wide">Automated Onboarding</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl md:text-4xl font-bold text-white mb-1">24/7</p>
+                    <p class="text-[10px] sm:text-xs md:text-sm text-gray-400 font-medium uppercase tracking-wide">Cloud Scalability</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl md:text-4xl font-bold text-white mb-1 flex justify-center"><i data-lucide="briefcase" class="w-8 h-8 md:w-10 md:h-10 text-accent"></i></p>
+                    <p class="text-[10px] sm:text-xs md:text-sm text-gray-400 font-medium uppercase tracking-wide mt-1">Job & Internships</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl md:text-4xl font-bold text-white mb-1 flex justify-center"><i data-lucide="shield-check" class="w-8 h-8 md:w-10 md:h-10 text-green-400"></i></p>
+                    <p class="text-[10px] sm:text-xs md:text-sm text-gray-400 font-medium uppercase tracking-wide mt-1">Role-Based Security</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Problem & Solution Section -->
+    <section id="about" class="py-16 md:py-24 bg-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                <div class="reveal">
+                    <h2 class="text-primary font-bold tracking-wider uppercase text-xs sm:text-sm mb-2">The Motivation</h2>
+                    <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold text-dark mb-6 leading-tight">Moving from unstructured chats to a unified institutional ecosystem.</h3>
+                    
+                    <div class="space-y-4 sm:space-y-6">
+                        <div class="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl bg-red-50 border border-red-100">
+                            <div class="bg-red-100 text-red-600 p-2 rounded-full h-fit w-fit">
+                                <i data-lucide="x-circle" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 mb-2">The Old Way (Problem)</h4>
+                                <p class="text-gray-600 text-sm leading-relaxed">Alumni interaction was unstructured and inconsistent. Data was scattered, communication informal, and valuable opportunities like mentorships, internships, and job referrals were often missed.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl bg-green-50 border border-green-100">
+                            <div class="bg-green-100 text-green-600 p-2 rounded-full h-fit w-fit">
+                                <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 mb-2">The New Portal (Solution)</h4>
+                                <p class="text-gray-600 text-sm leading-relaxed">A role-based, cloud-enabled platform connecting students, alumni, and admins in a controlled environment. Features automated onboarding, structured job postings, and controlled messaging.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Graphic Representation -->
+                <div class="relative reveal delay-200 mt-8 lg:mt-0">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-secondary/20 rounded-3xl transform rotate-2 sm:rotate-3 scale-105 blur-lg"></div>
+                    <div class="relative bg-dark rounded-3xl p-6 sm:p-8 shadow-2xl border border-gray-800">
+                        <h4 class="text-white font-semibold mb-6 text-center text-sm sm:text-base">Platform Architecture Flow</h4>
+                        <div class="flex flex-col gap-3 sm:gap-4">
+                            <div class="bg-gray-800 rounded-xl p-3 sm:p-4 flex items-center justify-between border border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-blue-500/20 p-2 rounded-lg text-blue-400 shrink-0"><i data-lucide="upload-cloud" class="w-4 h-4 sm:w-5 sm:h-5"></i></div>
+                                    <span class="text-gray-300 text-xs sm:text-sm font-medium">1. Admin Uploads Verified Data</span>
+                                </div>
+                                <i data-lucide="check" class="w-4 h-4 sm:w-5 sm:h-5 text-green-400 shrink-0"></i>
+                            </div>
+                            <div class="flex justify-center -my-2 z-10 text-gray-500"><i data-lucide="arrow-down" class="w-4 h-4 sm:w-5 sm:h-5"></i></div>
+                            <div class="bg-gray-800 rounded-xl p-3 sm:p-4 flex items-center justify-between border border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-purple-500/20 p-2 rounded-lg text-purple-400 shrink-0"><i data-lucide="mail" class="w-4 h-4 sm:w-5 sm:h-5"></i></div>
+                                    <span class="text-gray-300 text-xs sm:text-sm font-medium">2. Automated Account & Email</span>
+                                </div>
+                                <i data-lucide="check" class="w-4 h-4 sm:w-5 sm:h-5 text-green-400 shrink-0"></i>
+                            </div>
+                            <div class="flex justify-center -my-2 z-10 text-gray-500"><i data-lucide="arrow-down" class="w-4 h-4 sm:w-5 sm:h-5"></i></div>
+                            <div class="bg-gray-800 rounded-xl p-3 sm:p-4 flex items-center justify-between border border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-accent/20 p-2 rounded-lg text-accent shrink-0"><i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5"></i></div>
+                                    <span class="text-gray-300 text-xs sm:text-sm font-medium">3. Role-Based Secure Login</span>
+                                </div>
+                                <i data-lucide="check" class="w-4 h-4 sm:w-5 sm:h-5 text-green-400 shrink-0"></i>
+                            </div>
+                            <div class="flex justify-center -my-2 z-10 text-gray-500"><i data-lucide="arrow-down" class="w-4 h-4 sm:w-5 sm:h-5"></i></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                <div class="bg-indigo-900/40 border border-indigo-500/30 rounded-lg p-3 text-center text-xs text-indigo-300 font-medium">Students</div>
+                                <div class="bg-emerald-900/40 border border-emerald-500/30 rounded-lg p-3 text-center text-xs text-emerald-300 font-medium">Alumni</div>
+                                <div class="bg-orange-900/40 border border-orange-500/30 rounded-lg p-3 text-center text-xs text-orange-300 font-medium">Coordinators</div>
+                                <div class="bg-rose-900/40 border border-rose-500/30 rounded-lg p-3 text-center text-xs text-rose-300 font-medium">Administrators</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features Section -->
+    <section id="features" class="py-16 md:py-24 bg-gray-50 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10 md:mb-16 reveal">
+                <h2 class="text-primary font-bold tracking-wider uppercase text-xs sm:text-sm mb-2">Core Functionality</h2>
+                <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold text-dark mb-4">Powerful Features for a Connected Campus</h3>
+                <p class="text-sm sm:text-base md:text-lg text-gray-600">Designed to maximize participation, simplify management, and provide real career value to our students.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border border-gray-100 hover:-translate-y-2 transition-transform duration-300 reveal group">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-blue-50 text-secondary rounded-xl flex items-center justify-center mb-5 lg:mb-6 group-hover:bg-secondary group-hover:text-white transition-colors">
+                        <i data-lucide="user-plus" class="w-6 h-6 lg:w-7 lg:h-7"></i>
+                    </div>
+                    <h4 class="text-lg lg:text-xl font-bold text-dark mb-2 lg:mb-3">Automated Onboarding</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">Admins create accounts using verified institutional data. Credentials are auto-generated and emailed, ensuring 100% user inclusion without manual registration dependency.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border border-gray-100 hover:-translate-y-2 transition-transform duration-300 reveal delay-100 group">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-blue-50 text-secondary rounded-xl flex items-center justify-center mb-5 lg:mb-6 group-hover:bg-secondary group-hover:text-white transition-colors">
+                        <i data-lucide="briefcase" class="w-6 h-6 lg:w-7 lg:h-7"></i>
+                    </div>
+                    <h4 class="text-lg lg:text-xl font-bold text-dark mb-2 lg:mb-3">Job & Internship Board</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">Alumni can post opportunities directly. Students can search, filter, and apply seamlessly, creating a direct bridge to industry professionals and improving placements.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border border-gray-100 hover:-translate-y-2 transition-transform duration-300 reveal delay-200 group">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-blue-50 text-secondary rounded-xl flex items-center justify-center mb-5 lg:mb-6 group-hover:bg-secondary group-hover:text-white transition-colors">
+                        <i data-lucide="message-square" class="w-6 h-6 lg:w-7 lg:h-7"></i>
+                    </div>
+                    <h4 class="text-lg lg:text-xl font-bold text-dark mb-2 lg:mb-3">Controlled Communication</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">Request-based messaging ensures professional interaction. Communication is enabled only after an alumni accepts a student's connection request, preventing spam.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border border-gray-100 hover:-translate-y-2 transition-transform duration-300 reveal group">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-blue-50 text-secondary rounded-xl flex items-center justify-center mb-5 lg:mb-6 group-hover:bg-secondary group-hover:text-white transition-colors">
+                        <i data-lucide="file-text" class="w-6 h-6 lg:w-7 lg:h-7"></i>
+                    </div>
+                    <h4 class="text-lg lg:text-xl font-bold text-dark mb-2 lg:mb-3">Resume & Portfolios</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">Students build detailed profiles with resumes, skills, and projects. Alumni can evaluate these profiles before offering referrals or valuable mentorship.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border border-gray-100 hover:-translate-y-2 transition-transform duration-300 reveal delay-100 group">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-blue-50 text-secondary rounded-xl flex items-center justify-center mb-5 lg:mb-6 group-hover:bg-secondary group-hover:text-white transition-colors">
+                        <i data-lucide="bell-ring" class="w-6 h-6 lg:w-7 lg:h-7"></i>
+                    </div>
+                    <h4 class="text-lg lg:text-xl font-bold text-dark mb-2 lg:mb-3">Smart Notifications</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">Real-time, personalized notifications tailored by user role and activity for job postings, events, and announcements ensuring relevant updates are never missed.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border border-gray-100 hover:-translate-y-2 transition-transform duration-300 reveal delay-200 group">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-blue-50 text-secondary rounded-xl flex items-center justify-center mb-5 lg:mb-6 group-hover:bg-secondary group-hover:text-white transition-colors">
+                        <i data-lucide="video" class="w-6 h-6 lg:w-7 lg:h-7"></i>
+                    </div>
+                    <h4 class="text-lg lg:text-xl font-bold text-dark mb-2 lg:mb-3">Events & Mock Interviews</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">Departments can organize virtual events, alumni meets, and mock interviews within the platform, facilitating real-time prep and networking.</p>
+                </div>
+            </div>
+            
+            <!-- Additional Features Banner -->
+            <div class="mt-10 md:mt-12 bg-dark rounded-2xl p-6 lg:p-8 flex flex-col md:flex-row items-center justify-between text-white reveal shadow-2xl relative overflow-hidden text-center md:text-left">
+                <div class="absolute right-0 top-0 opacity-10">
+                    <i data-lucide="layout-dashboard" class="w-48 h-48 md:w-64 md:h-64 -mt-10 -mr-10"></i>
+                </div>
+                <div class="relative z-10 max-w-2xl">
+                    <h4 class="text-xl md:text-2xl font-bold mb-2 text-accent">Plus: Analytics & Donations</h4>
+                    <p class="text-gray-300 text-sm md:text-base">Comprehensive analytics dashboards for tracking user engagement and job trends. Secure and transparent donation handling for alumni to give back to institutional initiatives.</p>
+                </div>
+                <button class="relative z-10 mt-6 md:mt-0 w-full md:w-auto whitespace-nowrap px-6 py-3 bg-white text-dark font-bold rounded-full hover:bg-gray-100 transition-colors">
+                    View Full Dashboard
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Role-Based Capabilities -->
+    <section id="roles" class="py-16 md:py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10 md:mb-16 reveal">
+                <h2 class="text-primary font-bold tracking-wider uppercase text-xs sm:text-sm mb-2">Access Control</h2>
+                <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold text-dark mb-4">Role-Based Experiences</h3>
+                <p class="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">Each user role has defined permissions, ensuring secure access, proper governance, and a structured workflow tailored to their specific needs.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Student -->
+                <div class="border border-gray-200 rounded-2xl p-6 hover:shadow-xl transition-shadow reveal">
+                    <div class="bg-indigo-100 w-12 h-12 rounded-full flex items-center justify-center text-indigo-600 mb-4">
+                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-dark mb-4 border-b pb-2">Student</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Complete Profile & Portfolio
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Browse Jobs & Internships
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Send Connection Requests
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Apply for Jobs / Get Referrals
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Register for Alumni Membership
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Alumni -->
+                <div class="border border-gray-200 rounded-2xl p-6 hover:shadow-xl transition-shadow reveal delay-100">
+                    <div class="bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center text-emerald-600 mb-4">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-dark mb-4 border-b pb-2">Alumni</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Post Jobs & Internships
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> View Student Profiles
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Accept/Reject Requests
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Provide Mentorship
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Make Secure Donations
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Coordinator -->
+                <div class="border border-gray-200 rounded-2xl p-6 hover:shadow-xl transition-shadow reveal delay-200">
+                    <div class="bg-orange-100 w-12 h-12 rounded-full flex items-center justify-center text-orange-600 mb-4">
+                        <i data-lucide="network" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-dark mb-4 border-b pb-2">Coordinator</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Organize Virtual Events
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Schedule Mock Interviews
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Monitor Participation
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Manage Dept. Activities
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Admin -->
+                <div class="border border-gray-200 rounded-2xl p-6 hover:shadow-xl transition-shadow reveal delay-300 bg-gray-50">
+                    <div class="bg-rose-100 w-12 h-12 rounded-full flex items-center justify-center text-rose-600 mb-4">
+                        <i data-lucide="shield" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-dark mb-4 border-b border-gray-300 pb-2">Admin</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Manage Users & Roles
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Monitor System Activity
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> View Analytics Dashboard
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Manage Notifications
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 shrink-0"></i> Oversee Security
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expected Outcomes / Benefits Section - Redesigned to Match Screenshot -->
+    <section id="benefits" class="bg-[#0B1120] text-white pt-20 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-amber-500 font-bold tracking-widest uppercase text-sm mb-3">The Impact</h2>
+                <h3 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Transforming Institutional Engagement</h3>
+                <p class="text-gray-400 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">A sustainable, scalable ecosystem built to deliver measurable results for the college, students, and alumni.</p>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800/70">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2">
+                <!-- Benefit 1 -->
+                <div class="p-8 md:p-12 border-b border-gray-800/70 md:border-r flex flex-col sm:flex-row gap-6 reveal">
+                    <div class="shrink-0 w-16 h-16 bg-blue-900/30 border border-blue-800/60 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-7 h-7 text-blue-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg md:text-xl font-bold mb-2">Increased Alumni Engagement</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Ensures 100% onboarding via automated creation. Converts passive alumni into active contributors, mentors, recruiters, and donors through structured, continuous interaction.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 2 -->
+                <div class="p-8 md:p-12 border-b border-gray-800/70 flex flex-col sm:flex-row gap-6 reveal delay-100">
+                    <div class="shrink-0 w-16 h-16 bg-emerald-900/30 border border-emerald-800/60 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="target" class="w-7 h-7 text-emerald-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg md:text-xl font-bold mb-2">Improved Career Opportunities</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Gives students direct access to verified jobs. Dramatically increases chances of referrals through network building, and enhances prep via mock interviews.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="p-8 md:p-12 border-b border-gray-800/70 md:border-r flex flex-col sm:flex-row gap-6 reveal">
+                    <div class="shrink-0 w-16 h-16 bg-purple-900/30 border border-purple-800/60 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="database" class="w-7 h-7 text-purple-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg md:text-xl font-bold mb-2">Centralized Alumni Database</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Creates a single, structured platform for storing alumni data, eliminating scattered and outdated records. Enables highly efficient searching and filtering.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 4 -->
+                <div class="p-8 md:p-12 border-b border-gray-800/70 flex flex-col sm:flex-row gap-6 reveal delay-100">
+                    <div class="shrink-0 w-16 h-16 bg-amber-900/30 border border-amber-800/60 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="bar-chart-3" class="w-7 h-7 text-amber-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg md:text-xl font-bold mb-2">Data-Driven Decision Making</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Analytics dashboard provides deep insights on user engagement, job postings, and participation trends to help the administration make informed strategic decisions.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 5 -->
+                <div class="p-8 md:p-12 md:border-r border-b md:border-b-0 border-gray-800/70 flex flex-col sm:flex-row gap-6 reveal">
+                    <div class="shrink-0 w-16 h-16 bg-rose-900/30 border border-rose-800/60 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="award" class="w-7 h-7 text-rose-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg md:text-xl font-bold mb-2">Enhanced Institutional Branding</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Showcases a strong, active network. Improves reputation among prospective students and recruiters, directly supporting accreditation and ranking requirements.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 6 -->
+                <div class="p-8 md:p-12 flex flex-col sm:flex-row gap-6 reveal delay-100">
+                    <div class="shrink-0 w-16 h-16 bg-cyan-900/30 border border-cyan-800/60 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="server" class="w-7 h-7 text-cyan-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg md:text-xl font-bold mb-2">Sustainable & Scalable</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Built on robust cloud infrastructure (AWS). Fully capable of handling increasing data securely, and ready for future enhancements like AI-based recommendations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Footer - Redesigned to Match Screenshot -->
+    <footer class="bg-[#0B1120] border-t border-gray-800/70 pt-24 pb-12 relative text-white">
+        <div class="max-w-3xl mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 tracking-tight">Ready to Connect?</h2>
+            <p class="text-gray-400 text-sm md:text-base mb-10 leading-relaxed">Join the centralized platform that bridges the gap between LBRCE students and alumni. Log in to start exploring opportunities.</p>
+            
+            <button onclick="showModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-full font-bold text-base transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transform hover:-translate-y-0.5">
+                Access the Portal
+            </button>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 mt-20">
+            <!-- Separator Line & Links -->
+            <div class="border-t border-gray-800/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="graduation-cap" class="w-5 h-5 text-gray-400"></i>
+                    <span class="font-bold text-sm text-gray-200">LBRCE Alumni Connect</span>
+                </div>
+                <div class="flex gap-8 text-sm text-gray-500">
+                    <a href="#" class="hover:text-gray-300 transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">Terms of Use</a>
+                </div>
+            </div>
+
+            <!-- Credits -->
+            <div class="mt-16 text-center flex flex-col items-center gap-3">
+                <p class="text-gray-400 text-sm">
+                    Designed & Developed by <a href="https://xetasolutions.in" target="_blank" class="text-amber-500 hover:text-amber-400 font-bold transition-colors">Xeta Tech Solutions</a>
+                </p>
+                <p class="text-gray-500 text-[11px] font-semibold tracking-[0.2em] uppercase">
+                    (A Startup from AI&DS - LBRCE)
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Interactions and Animations -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking a link
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+            });
+        });
+
+        // Navbar Scroll Effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('shadow-md');
+                navbar.classList.replace('bg-white/90', 'bg-white/95');
+            } else {
+                navbar.classList.remove('shadow-md');
+                navbar.classList.replace('bg-white/95', 'bg-white/90');
+            }
+        });
+
+        // Scroll Reveal Animation using Intersection Observer
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -20px 0px"
+        };
+
+        const revealOnScroll = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) {
+                    return;
+                } else {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, revealOptions);
+
+        revealElements.forEach(el => {
+            revealOnScroll.observe(el);
+        });
+
+        // Modal Logic
+        const launchModal = document.getElementById('launch-modal');
+        
+        function showModal() {
+            launchModal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        function closeModal() {
+            launchModal.classList.remove('active');
+            document.body.style.overflow = ''; // Restore background scrolling
+        }
+
+        // Close modal when clicking outside of the popup card
+        launchModal.addEventListener('click', (e) => {
+            if (e.target === launchModal) {
+                closeModal();
+            }
+        });
+
+        // Countdown Timer Logic
+        const launchDate = new Date("April 13, 2026 00:00:00").getTime();
+
+        const timerInterval = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = launchDate - now;
+
+            // If the countdown is over
+            if (distance < 0) {
+                clearInterval(timerInterval);
+                document.getElementById("launch-timer").innerHTML = "<div class='text-xl sm:text-2xl font-bold text-accent drop-shadow-[0_0_10px_rgba(245,158,11,0.8)] tracking-widest uppercase py-4 sm:py-6'>The Portal is Live!</div>";
+                return;
+            }
+
+            // Time calculations
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Output the result
+            document.getElementById("days").innerText = days.toString().padStart(2, '0');
+            document.getElementById("hours").innerText = hours.toString().padStart(2, '0');
+            document.getElementById("minutes").innerText = minutes.toString().padStart(2, '0');
+            document.getElementById("seconds").innerText = seconds.toString().padStart(2, '0');
+        }, 1000);
+    </script>
+</body>
+</html>
